@@ -20,6 +20,7 @@ const PatientDashboard = () => {
         const loadData = async () => {
             if (user) {
                 const patientData = await getPatientByUserId(user.id);
+                setPatient(patientData);
                 if (patientData) {
                     const [recordsData, logsData, ipsRes] = await Promise.all([
                         getPatientRecords(patientData.patientId),
