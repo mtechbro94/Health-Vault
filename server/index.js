@@ -33,9 +33,30 @@ app.use((req, res, next) => {
 });
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('✅ MongoDB Connected'))
-    .catch(err => console.error('❌ MongoDB Connection Error:', err));
+const connectDB = async () => {
+    let mongoUri = process.env.MONGODB_URI;
+
+    // Check if we should use in-memory DB (default URI or no URI)
+    if (!mongoUri || mongoUri.includes('localhost:27017')) {
+        try {
+            const { MongoMemoryServer } = require('mongodb-memory-server');
+            const mongod = await MongoMemoryServer.create();
+            mongoUri = mongod.getUri();
+            console.log('🚀 Using In-Memory MongoDB:', mongoUri);
+        } catch (err) {
+            console.error('❌ Failed to start In-Memory MongoDB:', err);
+        }
+    }
+
+    try {
+        await mongoose.connect(mongoUri);
+        console.log('✅ MongoDB Connected');
+    } catch (err) {
+        console.error('❌ MongoDB Connection Error:', err);
+    }
+};
+
+connectDB();
 
 
 // Helper to generate patient ID
@@ -259,12 +280,18 @@ app.get('/api/access-logs/:patientId', async (req, res) => {
 // Add access log
 app.post('/api/access-logs', async (req, res) => {
     try {
+        const { patientId, accessType, action, hospitalName, hospitalId } = req.body;
+
         const newLog = await AccessLog.create({
             id: uuidv4(),
-            ...req.body
+            patientId,
+            hospitalName: hospitalName || (accessType === 'emergency_qr' ? 'Emergency System' : 'Unknown Hospital'),
+            action: action || accessType || 'VIEW_PROFILE',
+            timestamp: new Date()
         });
         res.json(newLog);
     } catch (error) {
+        console.error('Access Log Error:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -397,6 +424,41 @@ app.post('/api/blood-requests', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+});
+
+// ============ UTILITY ENDPOINTS ============
+
+// Get server network IPs (for mobile testing)
+app.get('/api/network-ips', (req, res) => {
+    const { networkInterfaces } = require('os');
+    const nets = networkInterfaces();
+    const ips = [];
+
+    for (const name of Object.keys(nets)) {
+        for (const net of nets[name]) {
+            if (net.family === 'IPv4' && !net.internal) {
+                ips.push(net.address);
+            }
+        }
+    }
+
+    // Sort IPs to prioritize common LAN ranges (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+    ips.sort((a, b) => {
+        const isCommonLAN = (ip) => {
+            return ip.startsWith('192.168.') ||
+                ip.startsWith('10.') ||
+                /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip);
+        };
+
+        const aIsLAN = isCommonLAN(a);
+        const bIsLAN = isCommonLAN(b);
+
+        if (aIsLAN && !bIsLAN) return -1;
+        if (!aIsLAN && bIsLAN) return 1;
+        return 0;
+    });
+
+    res.json({ ips });
 });
 
 // ============ SERVE FRONTEND (PRODUCTION) ============

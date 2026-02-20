@@ -13,20 +13,24 @@ const PatientDashboard = () => {
     const [patient, setPatient] = useState(null);
     const [records, setRecords] = useState([]);
     const [accessLogs, setAccessLogs] = useState([]);
+    const [networkIps, setNetworkIps] = useState([]);
+    const [selectedIp, setSelectedIp] = useState('');
 
     useEffect(() => {
         const loadData = async () => {
             if (user) {
                 const patientData = await getPatientByUserId(user.id);
-                setPatient(patientData);
-
                 if (patientData) {
-                    const [recordsData, logsData] = await Promise.all([
+                    const [recordsData, logsData, ipsRes] = await Promise.all([
                         getPatientRecords(patientData.patientId),
-                        getPatientAccessLogs(patientData.patientId)
+                        getPatientAccessLogs(patientData.patientId),
+                        fetch('/api/network-ips').then(res => res.json()).catch(() => ({ ips: [] }))
                     ]);
                     setRecords(recordsData);
                     setAccessLogs(logsData);
+                    const ips = ipsRes.ips || [];
+                    setNetworkIps(ips);
+                    if (ips.length > 0) setSelectedIp(ips[0]);
                 }
             }
         };
@@ -35,8 +39,16 @@ const PatientDashboard = () => {
 
     const refreshData = async () => {
         if (user) {
-            const patientData = await getPatientByUserId(user.id);
+            const [patientData, ipsRes] = await Promise.all([
+                getPatientByUserId(user.id),
+                fetch('/api/network-ips').then(res => res.json()).catch(() => ({ ips: [] }))
+            ]);
+
             setPatient(patientData);
+            const ips = ipsRes.ips || [];
+            setNetworkIps(ips);
+            if (ips.length > 0 && !selectedIp) setSelectedIp(ips[0]);
+
             if (patientData) {
                 const [recordsData, logsData] = await Promise.all([
                     getPatientRecords(patientData.patientId),
@@ -64,10 +76,18 @@ const PatientDashboard = () => {
         );
     }
 
-    // Emergency URL automatically uses the current origin (hostname/IP + port)
-    // This means if you access the app via network IP, QR code will use that IP
-    const emergencyUrl = `${window.location.origin}/emergency/${patient.patientId}`;
+
+
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    // Determine the host for the QR code
+    let qrHostname = window.location.hostname;
+
+    if (isLocalhost && selectedIp) {
+        qrHostname = selectedIp;
+    }
+
+    const emergencyUrl = `${window.location.protocol}//${qrHostname}:${window.location.port}/emergency/${patient.patientId}`;
 
     return (
         <>
@@ -133,21 +153,48 @@ const PatientDashboard = () => {
                             {/* Auto Network Detection Info */}
                             <div style={{
                                 marginTop: '1rem',
-                                padding: '0.5rem',
+                                padding: '0.75rem',
                                 background: isLocalhost ? 'rgba(234, 179, 8, 0.1)' : 'rgba(34, 197, 94, 0.1)',
                                 borderRadius: 'var(--radius-md)',
-                                border: isLocalhost ? '1px solid rgba(234, 179, 8, 0.3)' : '1px solid rgba(34, 197, 94, 0.3)'
+                                border: isLocalhost ? '1px solid rgba(234, 179, 8, 0.3)' : '1px solid rgba(34, 197, 94, 0.3)',
+                                textAlign: 'left'
                             }}>
                                 {isLocalhost ? (
-                                    <p style={{ color: '#eab308', fontSize: '0.7rem', margin: 0 }}>
-                                        ⚠️ Access app via your network IP for mobile scanning:<br />
-                                        <code style={{ background: 'rgba(0,0,0,0.3)', padding: '0.1rem 0.25rem', borderRadius: '3px' }}>
-                                            http://YOUR_IP:{window.location.port}
-                                        </code>
-                                    </p>
+                                    <>
+                                        <p style={{ color: '#eab308', fontSize: '0.75rem', margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>
+                                            📱 Mobile Access Setup:
+                                        </p>
+                                        <p style={{ color: 'white', fontSize: '0.7rem', margin: '0 0 0.5rem 0' }}>
+                                            1. Connect phone to <strong>Same Wi-Fi</strong><br />
+                                            2. Select your Wi-Fi IP below:
+                                        </p>
+                                        <select
+                                            value={selectedIp}
+                                            onChange={(e) => setSelectedIp(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.25rem',
+                                                background: 'rgba(0,0,0,0.3)',
+                                                color: 'white',
+                                                border: '1px solid rgba(255,255,255,0.2)',
+                                                borderRadius: '4px',
+                                                fontSize: '0.75rem',
+                                                marginBottom: '0.5rem'
+                                            }}
+                                        >
+                                            {networkIps.map(ip => (
+                                                <option key={ip} value={ip}>{ip}</option>
+                                            ))}
+                                            <option value={window.location.hostname}>Local (Browser only)</option>
+                                        </select>
+                                        <p style={{ color: '#var(--gray-400)', fontSize: '0.65rem', margin: 0, fontStyle: 'italic' }}>
+                                            Current: <code>{qrHostname}</code>
+                                        </p>
+                                    </>
                                 ) : (
                                     <p style={{ color: '#22c55e', fontSize: '0.7rem', margin: 0 }}>
-                                        ✅ QR code will work on mobile! Using: {window.location.hostname}
+                                        ✅ QR code is mobile-ready!<br />
+                                        Using: {window.location.hostname}
                                     </p>
                                 )}
                             </div>

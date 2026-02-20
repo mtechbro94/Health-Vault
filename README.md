@@ -1,162 +1,90 @@
-# HealthVault - Patient-Controlled Health Record System
+# 🏥 HealthVault - Patient-Controlled Health Record System
 
-A secure, patient-owned health record management system with emergency access capabilities and blood donation coordination.
+A secure, patient-owned health record management system with emergency access capabilities, blood donation coordination, and a Python-powered priority engine.
 
-## Features
+## 🚀 Quick Start (Plug and Play)
 
-- **Patient Dashboard** - Manage personal health records, blood donation preferences, and emergency profiles
-- **Hospital Dashboard** - Access patient records (with consent), broadcast urgent blood requests
-- **Emergency Access** - QR-code based emergency access to patient records
-- **Priority Engine** - Python-based urgency scoring for blood requests
-- **SMS Notifications** - Twilio integration for alerting blood donors
+HealthVault is designed to run locally with **zero database configuration** required. It automatically uses an in-memory MongoDB server if no connection string is provided.
 
-## Prerequisites
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/mtechbro94/health-vault.git
+   cd health-vault
+   ```
 
-- Node.js 18+
-- Python 3.8+
-- MongoDB (local or Atlas)
-- npm or yarn
+2. **Install Dependencies**
+   ```bash
+   # Install frontend dependencies
+   npm install
 
-## Project Structure
+   # Install backend dependencies
+   cd server
+   npm install
+   cd ..
+   ```
 
-```
-health-vault/
-├── src/                    # React frontend
-│   ├── components/         # Reusable UI components
-│   ├── context/            # Auth context
-│   ├── pages/              # Page components
-│   └── utils/              # API helpers and utilities
-├── server/                 # Express backend
-│   ├── models/             # Mongoose models
-│   ├── priority_engine/    # Python urgency scoring
-│   ├── index.js            # API server
-│   └── .env                # Environment variables
-├── dist/                   # Built frontend
-├── package.json            # Root package config
-└── vite.config.js          # Vite configuration
-```
+3. **Run the Application**
+   Open two terminals:
 
-## Setup Instructions
+   **Terminal 1 (Backend)**:
+   ```bash
+   cd server
+   npm start
+   ```
+   *The server will start at http://localhost:3001 and automatically spin up a temporary database.*
 
-### 1. Clone and Install Dependencies
+   **Terminal 2 (Frontend)**:
+   ```bash
+   npm run dev
+   ```
+   *The app will be accessible at http://localhost:5173*
 
-```bash
-# Install frontend dependencies
-npm install
+---
 
-# Install backend dependencies
-cd server
-npm install
-cd ..
-```
+## ✨ Features
 
-### 2. Configure Environment Variables
+- **🛡️ Patient Dashboard**: Manage personal health records, blood donation preferences, and emergency profiles.
+- **🏥 Hospital Dashboard**: Search for patients, access emergency records (with consent), and broadcast urgent blood requests.
+- **🚨 Emergency QR Access**: High-performance QR code system with **automatic network detection** for mobile scanning.
+- **🩸 Priority Engine**: Sophisticated Python-based scoring system to determine the urgency of blood requests.
+- **📱 Mobile Ready**: Built-in IP selector helps you scan QR codes even when running on a local development machine.
 
-Create a `.env` file in the `server/` directory:
+## 🛠️ Tech Stack
+
+- **Frontend**: React 18, Vite, Vanilla CSS (Glassmorphism design)
+- **Backend**: Node.js, Express.js, Mongoose
+- **Database**: MongoDB (Supports Auto-In-Memory fallback for local development)
+- **Urgency Engine**: Python 3.x
+- **Utilities**: Twilio (Optional SMS), UUID, OS-level network discovery
+
+## ⚙️ Advanced Configuration (Optional)
+
+To use a persistent database or Twilio SMS, create a `.env` file in the `server/` directory:
 
 ```env
-# MongoDB Connection
-MONGODB_URI=mongodb://localhost:27017/healthvault
+# MongoDB Connection (Persistent)
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/healthvault
 
-# Server Port
-PORT=3001
-
-# Twilio (Optional - for SMS notifications)
-# Get a free trial at https://www.twilio.com/
-TWILIO_ACCOUNT_SID=your_account_sid
-TWILIO_AUTH_TOKEN=your_auth_token
-TWILIO_PHONE_NUMBER=+1234567890
+# Twilio Credentials
+TWILIO_ACCOUNT_SID=your_sid
+TWILIO_AUTH_TOKEN=your_token
+TWILIO_PHONE_NUMBER=your_number
 ```
 
-For MongoDB Atlas (cloud), use:
-```
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/healthvault
-```
+## 📋 Usage Guide
 
-### 3. Install MongoDB
+### 1. Patient Flow
+* Sign up as a **Patient**.
+* Upload your medical records.
+* In the dashboard, select your **Wi-Fi IP** from the dropdown to ensure the QR code is reachable by your phone.
+* Scan the QR code to view the **Emergency Access Page**.
 
-**Option A: Local MongoDB**
-1. Download from https://www.mongodb.com/try/download/community
-2. Install and start the MongoDB service
+### 2. Hospital Flow
+* Sign up as a **Hospital**.
+* Use the search bar to find donors by blood group.
+* Create a **Blood Request** to see the **Priority Engine** in action (calculating urgency scores from 0-100).
 
-**Option B: MongoDB Atlas (Cloud)**
-1. Create free account at https://www.mongodb.com/atlas
-2. Create a free cluster
-3. Get connection string and put it in MONGODB_URI
+---
 
-### 4. Run the Project
-
-**Development Mode (Frontend only - API calls will fail without backend):**
-```bash
-npm run dev
-```
-Frontend runs at http://localhost:5173
-
-**Full Stack (requires MongoDB):**
-
-Terminal 1 - Backend:
-```bash
-cd server
-npm start
-```
-Backend runs at http://localhost:3001
-
-Terminal 2 - Frontend:
-```bash
-npm run dev
-```
-
-**Production Build:**
-```bash
-npm run build
-cd server
-npm start
-```
-
-## Usage
-
-### For Patients:
-1. Sign up as a "Patient"
-2. Complete your profile with medical details
-3. Enable blood donation if eligible
-4. Upload medical records
-5. Share your emergency QR code
-
-### For Hospitals:
-1. Sign up as a "Hospital"
-2. Search for patients by blood group
-3. Request blood with urgency scoring
-4. Access patient records (with consent)
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /api/users | Create new user |
-| POST | /api/users/login | User login |
-| GET | /api/patients/:patientId | Get patient by ID |
-| PUT | /api/patients/:patientId | Update patient |
-| GET | /api/records/:patientId | Get patient records |
-| POST | /api/records | Add medical record |
-| POST | /api/blood-requests | Create blood request |
-| POST | /api/access-logs | Log record access |
-
-## Blood Request Types
-
-The priority engine accepts these request types:
-- `ACCIDENT` - Base score: 90
-- `CHILDBIRTH` - Base score: 80
-- `SURGERY` - Base score: 75
-- `THALASSEMIA` - Base score: 60
-
-## Tech Stack
-
-- **Frontend**: React 18, React Router, Vite
-- **Backend**: Express.js, Mongoose
-- **Database**: MongoDB
-- **Priority Engine**: Python
-- **SMS**: Twilio (optional)
-
-## License
-
-MIT
+## 📄 License
+MIT License. Created by @mtechbro94.
