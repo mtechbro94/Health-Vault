@@ -1,8 +1,8 @@
-# 🏥 HealthVault - Patient-Controlled Health Record System
+# HealthVault - Patient-Controlled Health Record System
 
 A secure, patient-owned health record management system with emergency access capabilities, blood donation coordination, and a Python-powered priority engine.
 
-## 🚀 Quick Start (Plug and Play)
+## Quick Start (Plug and Play)
 
 HealthVault is designed to run locally with **zero database configuration** required. It automatically uses an in-memory MongoDB server if no connection string is provided.
 
@@ -41,15 +41,15 @@ HealthVault is designed to run locally with **zero database configuration** requ
 
 ---
 
-## ✨ Features
+## Features
 
-- **🛡️ Patient Dashboard**: Manage personal health records, blood donation preferences, and emergency profiles.
-- **🏥 Hospital Dashboard**: Search for patients, access emergency records (with consent), and broadcast urgent blood requests.
-- **🚨 Emergency QR Access**: High-performance QR code system with **automatic network detection** for mobile scanning.
-- **🩸 Priority Engine**: Sophisticated Python-based scoring system to determine the urgency of blood requests.
-- **📱 Mobile Ready**: Built-in IP selector helps you scan QR codes even when running on a local development machine.
+- **Patient Dashboard**: Manage personal health records, blood donation preferences, and emergency profiles.
+- **Hospital Dashboard**: Search for patients, access emergency records (with consent), and broadcast urgent blood requests.
+- **Emergency QR Access**: High-performance QR code system with **automatic network detection** for mobile scanning.
+- **Priority Engine**: Sophisticated Python-based scoring system to determine the urgency of blood requests.
+- **Mobile Ready**: Built-in IP selector helps you scan QR codes even when running on a local development machine.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend**: React 18, Vite, Vanilla CSS (Glassmorphism design)
 - **Backend**: Node.js, Express.js, Mongoose
@@ -57,7 +57,7 @@ HealthVault is designed to run locally with **zero database configuration** requ
 - **Urgency Engine**: Python 3.x
 - **Utilities**: Twilio (Optional SMS), UUID, OS-level network discovery
 
-## ⚙️ Advanced Configuration (Optional)
+## Advanced Configuration (Optional)
 
 To use a persistent database or Twilio SMS, create a `.env` file in the `server/` directory:
 
@@ -71,7 +71,7 @@ TWILIO_AUTH_TOKEN=your_token
 TWILIO_PHONE_NUMBER=your_number
 ```
 
-## 📋 Usage Guide
+## Usage Guide
 
 ### 1. Patient Flow
 * Sign up as a **Patient**.
@@ -86,5 +86,5 @@ TWILIO_PHONE_NUMBER=your_number
 
 ---
 
-## 📄 License
+## License
 MIT License. Created by @mtechbro94.
