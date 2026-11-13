@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
     getPatientByPatientId,
@@ -12,6 +12,7 @@ import {
 } from '../utils/api';
 import { formatDate, getFileIcon, getFileType, fileToBase64, BLOOD_GROUPS } from '../utils/helpers';
 import Header from '../components/Header';
+import SymptomChart from '../components/SymptomChart';
 
 const HospitalDashboard = () => {
     const { user, profile } = useAuth();
@@ -311,6 +312,7 @@ const HospitalDashboard = () => {
     return (
         <>
             <Header />
+            <SymptomChart />
             <div className="page">
                 <div className="container">
                     {/* Page Header */}

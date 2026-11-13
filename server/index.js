@@ -426,6 +426,26 @@ app.post('/api/blood-requests', async (req, res) => {
     }
 });
 
+// ============ ANALYTICS: LIVE CASES BY SYMPTOM ============
+
+app.get('/api/analytics/symptoms', async (req, res) => {
+    try {
+        const days = parseInt(req.query.days) || 0;
+        const match = days > 0 ? { createdAt: { $gte: new Date(Date.now() - days * 86400000) } } : {};
+        const rows = await Record.aggregate([
+            { $match: match },
+            { $project: { diag: { $trim: { input: { $ifNull: ['$diagnosis', ''] } } } } },
+            { $match: { diag: { $ne: '' } } },
+            { $group: { _id: '$diag', cases: { $sum: 1 } } },
+            { $sort: { cases: -1 } },
+            { $limit: 12 }
+        ]);
+        res.json({ success: true, updated: new Date().toISOString(), symptoms: rows.map(r => ({ symptom: r._id, cases: r.cases })) });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ============ UTILITY ENDPOINTS ============
 
 // Get server network IPs (for mobile testing)
